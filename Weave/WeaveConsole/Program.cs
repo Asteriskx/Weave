@@ -16,7 +16,7 @@ namespace WeaveConsole
             Console.WriteLine(" ----------- 認証キー(OAuth Code)取得開始 ------------------");
 
             _OAuth = new Authorization(clientId, clientSecret);
-            await _OAuth.GetOAuthCodeAsync(clientId, HttpMethod.Post);
+            await _OAuth.GetOAuthCodeAsync(clientId);
 
             Console.WriteLine(" ----------- 認証キー(OAuth Code)取得完了 ------------------");
             Console.Write("your oauth code = ");

@@ -1,7 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+
+using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
 
 namespace Weave.MixCloud.EndPoints.Authorization
 {
@@ -10,8 +14,7 @@ namespace Weave.MixCloud.EndPoints.Authorization
     /// </summary>
     public class Authorization : MixCloudCredentials
     {
-        private const string _BaseUrl = "https://www.mixcloud.com/oauth/authorize";
-        private const string _RedirectUri = "www.example.com";
+        private const string _RedirectUri = "localhost";
 
         /// <summary>
         /// Constructor
@@ -26,14 +29,14 @@ namespace Weave.MixCloud.EndPoints.Authorization
         /// <summary>
         /// MixCloud からAccess Token取得用の認証コードを取得します。
         /// </summary>
-        /// <param name="clientId"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public async Task GetOAuthCodeAsync(string clientId, HttpMethod type)
+        /// <param name="clientId"> application client id </param>
+        public async Task GetOAuthCodeAsync(string clientId)
         {
+            const string BaseUrl = "https://www.mixcloud.com/oauth/authorize";
+
             await Task.Run(() =>
             {
-                var url = $"{_BaseUrl}?client_id={clientId}&redirect_uri={_RedirectUri}";
+                var url = $"{BaseUrl}?client_id={clientId}&redirect_uri={_RedirectUri}";
                 this._RunBrowzer(url);
             });
         }
@@ -41,18 +44,29 @@ namespace Weave.MixCloud.EndPoints.Authorization
         /// <summary>
         /// MixCloud から Access Token を取得します。
         /// </summary>
-        /// <param name="clientId"></param>
-        /// <param name="clientSecret"></param>
-        /// <param name="code"></param>
-        /// <returns></returns>
+        /// <param name="clientId"> application client id </param>
+        /// <param name="clientSecret"> application client secret </param>
+        /// <param name="code">oauth code (access token発行用の code) </param>
         public async Task GetAccessTokenAsync(string clientId, string clientSecret, string code)
         {
             const string AuthUrl = "https://www.mixcloud.com/oauth/access_token";
 
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 var url = $"{AuthUrl}?client_id={clientId}&redirect_uri={_RedirectUri}&client_secret={clientSecret}&code={code}";
                 this._RunBrowzer(url);
+
+                var doc = default(IHtmlDocument);
+
+                using var client = new HttpClient();
+                using var stream = await client.GetStreamAsync(new Uri(url));
+
+                var parser = new HtmlParser();
+                doc = await parser.ParseDocumentAsync(stream);
+
+                var words = doc.Body.TextContent.Split(' ');
+                var persedToken = words[5].Split('\n');
+                base._AccessToken = persedToken[0].Trim(new char[] { '"' });
             });
         }
 

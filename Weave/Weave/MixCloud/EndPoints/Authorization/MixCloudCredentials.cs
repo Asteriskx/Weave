@@ -10,12 +10,12 @@
         /// <summary>
         /// Access Token
         /// </summary>
-        protected string _AccessToken { get; private set; } = "";
+        public string _AccessToken { get; protected set; } = "";
 
         /// <summary>
         /// Client ID
         /// </summary>
-        protected string _ClientId { get; private set; } = "";
+        public string _ClientId { get; private set; } = "";
 
         /// <summary>
         /// Client Secret
@@ -38,7 +38,7 @@
         /// <summary>
         /// 
         /// </summary>
-        protected string GetAccessToken => this._AccessToken;
+        public string GetAccessToken => this._AccessToken;
 
 
         #endregion Constructor
